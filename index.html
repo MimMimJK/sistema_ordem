@@ -639,3 +639,998 @@ let componentes = [];
 let produtoOPSelecionado = null;
 
 let componenteSelecionado = null;
+
+
+/* ============================================================
+   TROCAR PÁGINA
+============================================================ */
+
+function mostrarPagina(pagina) {
+
+    const paginaOrdem =
+        document.getElementById("paginaOrdem");
+
+    const paginaSimulacao =
+        document.getElementById("paginaSimulacao");
+
+    const btnOrdem =
+        document.getElementById("btnOrdem");
+
+    const btnSimulacao =
+        document.getElementById("btnSimulacao");
+
+
+    if (pagina === "ordem") {
+
+        paginaOrdem.classList.remove("oculta");
+
+        paginaSimulacao.classList.add("oculta");
+
+        btnOrdem.classList.add("ativo");
+
+        btnSimulacao.classList.remove("ativo");
+
+    } else {
+
+        paginaOrdem.classList.add("oculta");
+
+        paginaSimulacao.classList.remove("oculta");
+
+        btnOrdem.classList.remove("ativo");
+
+        btnSimulacao.classList.add("ativo");
+
+    }
+
+}
+
+
+/* ============================================================
+   CARREGAR ORDEM DE PRODUÇÃO
+============================================================ */
+
+async function carregarOP() {
+
+    const { data, error } = await supabaseClient
+        .from("produtos_op")
+        .select("*")
+        .order("ordem", { ascending: true });
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao carregar Ordens de Produção.");
+
+        return;
+
+    }
+
+
+    produtosOP = data || [];
+
+    renderizarOP();
+
+}
+
+
+/* ============================================================
+   MOSTRAR OP NA TABELA
+============================================================ */
+
+function renderizarOP(lista = produtosOP) {
+
+    const tabela =
+        document.getElementById("tabelaOP");
+
+    tabela.innerHTML = "";
+
+
+    lista.forEach(produto => {
+
+        const linha =
+            document.createElement("tr");
+
+
+        linha.innerHTML = `
+
+            <td>${produto.codigo || ""}</td>
+
+            <td>${produto.linha || ""}</td>
+
+            <td>${produto.subconjunto || ""}</td>
+
+            <td>${produto.quantidade_embalagem || ""}</td>
+
+            <td>${produto.ordem || ""}</td>
+
+        `;
+
+
+        linha.onclick = function() {
+
+            document
+                .querySelectorAll("#tabelaOP tr")
+                .forEach(tr => {
+
+                    tr.classList.remove("selecionada");
+
+                });
+
+
+            produtoOPSelecionado = produto.id;
+
+            linha.classList.add("selecionada");
+
+
+            document.getElementById("codigoOP").value =
+                produto.codigo || "";
+
+            document.getElementById("linhaOP").value =
+                produto.linha || "";
+
+            document.getElementById("subconjuntoOP").value =
+                produto.subconjunto || "";
+
+            document.getElementById("quantidadeEmbalagemOP").value =
+                produto.quantidade_embalagem || "";
+
+            document.getElementById("ordemOP").value =
+                produto.ordem || "";
+
+        };
+
+
+        tabela.appendChild(linha);
+
+    });
+
+}
+
+
+/* ============================================================
+   CADASTRAR OP
+============================================================ */
+
+async function cadastrarOP() {
+
+    const codigo =
+        document.getElementById("codigoOP").value.trim();
+
+    const linha =
+        document.getElementById("linhaOP").value.trim();
+
+    const subconjunto =
+        document.getElementById("subconjuntoOP").value.trim();
+
+    const quantidade =
+        document.getElementById("quantidadeEmbalagemOP").value;
+
+    const ordem =
+        document.getElementById("ordemOP").value;
+
+
+    if (!codigo || !linha || !quantidade || !ordem) {
+
+        alert("Preencha Código, Linha, Quantidade e Ordem.");
+
+        return;
+
+    }
+
+
+    const { error } = await supabaseClient
+        .from("produtos_op")
+        .insert([{
+
+            codigo: codigo,
+
+            linha: linha,
+
+            subconjunto: subconjunto || null,
+
+            quantidade_embalagem: Number(quantidade),
+
+            ordem: Number(ordem)
+
+        }]);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao cadastrar.");
+
+        return;
+
+    }
+
+
+    alert("Ordem de Produção cadastrada.");
+
+    limparOP();
+
+    carregarOP();
+
+}
+
+
+/* ============================================================
+   EDITAR OP
+============================================================ */
+
+async function editarOP() {
+
+    if (!produtoOPSelecionado) {
+
+        alert("Selecione uma Ordem de Produção.");
+
+        return;
+
+    }
+
+
+    const codigo =
+        document.getElementById("codigoOP").value.trim();
+
+    const linha =
+        document.getElementById("linhaOP").value.trim();
+
+    const subconjunto =
+        document.getElementById("subconjuntoOP").value.trim();
+
+    const quantidade =
+        document.getElementById("quantidadeEmbalagemOP").value;
+
+    const ordem =
+        document.getElementById("ordemOP").value;
+
+
+    if (!codigo || !linha || !quantidade || !ordem) {
+
+        alert("Preencha Código, Linha, Quantidade e Ordem.");
+
+        return;
+
+    }
+
+
+    const { error } = await supabaseClient
+        .from("produtos_op")
+        .update({
+
+            codigo: codigo,
+
+            linha: linha,
+
+            subconjunto: subconjunto || null,
+
+            quantidade_embalagem: Number(quantidade),
+
+            ordem: Number(ordem)
+
+        })
+        .eq("id", produtoOPSelecionado);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao editar.");
+
+        return;
+
+    }
+
+
+    alert("Ordem de Produção atualizada.");
+
+    limparOP();
+
+    carregarOP();
+
+}
+
+
+/* ============================================================
+   EXCLUIR OP
+============================================================ */
+
+async function excluirOP() {
+
+    if (!produtoOPSelecionado) {
+
+        alert("Selecione uma Ordem de Produção.");
+
+        return;
+
+    }
+
+
+    if (!confirm("Deseja realmente excluir esta Ordem de Produção?")) {
+
+        return;
+
+    }
+
+
+    const { error } = await supabaseClient
+        .from("produtos_op")
+        .delete()
+        .eq("id", produtoOPSelecionado);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao excluir.");
+
+        return;
+
+    }
+
+
+    alert("Ordem de Produção excluída.");
+
+    limparOP();
+
+    carregarOP();
+
+}
+
+
+/* ============================================================
+   LIMPAR OP
+============================================================ */
+
+function limparOP() {
+
+    document.getElementById("codigoOP").value = "";
+
+    document.getElementById("linhaOP").value = "";
+
+    document.getElementById("subconjuntoOP").value = "";
+
+    document.getElementById("quantidadeEmbalagemOP").value = "";
+
+    document.getElementById("ordemOP").value = "";
+
+
+    produtoOPSelecionado = null;
+
+
+    document
+        .querySelectorAll("#tabelaOP tr")
+        .forEach(tr => {
+
+            tr.classList.remove("selecionada");
+
+        });
+
+}
+
+
+/* ============================================================
+   PESQUISAR OP
+============================================================ */
+
+function pesquisarOP() {
+
+    const texto =
+        document.getElementById("pesquisaOP")
+        .value
+        .toLowerCase()
+        .trim();
+
+
+    const resultado =
+        produtosOP.filter(produto => {
+
+            return (
+
+                String(produto.codigo || "")
+                    .toLowerCase()
+                    .includes(texto)
+
+                ||
+
+                String(produto.linha || "")
+                    .toLowerCase()
+                    .includes(texto)
+
+                ||
+
+                String(produto.subconjunto || "")
+                    .toLowerCase()
+                    .includes(texto)
+
+                ||
+
+                String(produto.ordem || "")
+                    .toLowerCase()
+                    .includes(texto)
+
+            );
+
+        });
+
+
+    renderizarOP(resultado);
+
+}
+
+
+/* ============================================================
+   PRODUTOS DA SIMULAÇÃO
+============================================================ */
+
+async function carregarProdutosSimulacao() {
+
+    const { data, error } =
+        await supabaseClient
+            .from("produtos_simulacao")
+            .select("*")
+            .order("nome");
+
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+
+    }
+
+
+    produtosSimulacao = data || [];
+
+
+    const select =
+        document.getElementById("produtoSimulacao");
+
+
+    select.innerHTML =
+        `<option value="">Selecione um produto</option>`;
+
+
+    produtosSimulacao.forEach(produto => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = produto.id;
+
+        option.textContent = produto.nome;
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+/* ============================================================
+   CARREGAR COMPONENTES
+============================================================ */
+
+async function carregarComponentes() {
+
+    const produtoId =
+        document.getElementById("produtoSimulacao").value;
+
+
+    const tabela =
+        document.getElementById("tabelaComponentes");
+
+
+    tabela.innerHTML = "";
+
+
+    componenteSelecionado = null;
+
+
+    if (!produtoId) {
+
+        return;
+
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("componentes")
+            .select("*")
+            .eq("produto_id", produtoId)
+            .order("nome");
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao carregar componentes.");
+
+        return;
+
+    }
+
+
+    componentes = data || [];
+
+
+    componentes.forEach(componente => {
+
+        const linha =
+            document.createElement("tr");
+
+
+        linha.innerHTML = `
+
+            <td>${componente.nome || ""}</td>
+
+            <td>${componente.quantidade || ""}</td>
+
+            <td>${componente.embalagem || ""}</td>
+
+            <td>${componente.capacidade || ""}</td>
+
+        `;
+
+
+        linha.onclick = function() {
+
+            document
+                .querySelectorAll("#tabelaComponentes tr")
+                .forEach(tr => {
+
+                    tr.classList.remove("selecionada");
+
+                });
+
+
+            componenteSelecionado =
+                componente.id;
+
+
+            linha.classList.add("selecionada");
+
+
+            console.log(
+                "Componente selecionado:",
+                componente
+            );
+
+        };
+
+
+        tabela.appendChild(linha);
+
+    });
+
+}
+
+
+/* ============================================================
+   MODAL PRODUTO
+============================================================ */
+
+function abrirModalProduto() {
+
+    document.getElementById("modalProduto").style.display =
+        "flex";
+
+}
+
+
+function fecharModalProduto() {
+
+    document.getElementById("modalProduto").style.display =
+        "none";
+
+}
+
+
+/* ============================================================
+   CRIAR PRODUTO
+============================================================ */
+
+async function criarProduto() {
+
+    const nome =
+        document.getElementById("nomeNovoProduto")
+        .value
+        .trim();
+
+
+    if (!nome) {
+
+        alert("Digite o nome do produto.");
+
+        return;
+
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("produtos_simulacao")
+            .insert([{
+
+                nome: nome
+
+            }]);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao criar produto.");
+
+        return;
+
+    }
+
+
+    alert("Produto criado.");
+
+
+    document.getElementById("nomeNovoProduto").value =
+        "";
+
+
+    fecharModalProduto();
+
+    carregarProdutosSimulacao();
+
+}
+
+
+/* ============================================================
+   EXCLUIR PRODUTO
+============================================================ */
+
+async function excluirProduto() {
+
+    const produtoId =
+        document.getElementById("produtoSimulacao").value;
+
+
+    if (!produtoId) {
+
+        alert("Selecione um produto.");
+
+        return;
+
+    }
+
+
+    if (!confirm("Deseja realmente excluir este produto?")) {
+
+        return;
+
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("produtos_simulacao")
+            .delete()
+            .eq("id", produtoId);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao excluir produto.");
+
+        return;
+
+    }
+
+
+    alert("Produto excluído.");
+
+
+    carregarProdutosSimulacao();
+
+
+    document.getElementById("tabelaComponentes")
+        .innerHTML = "";
+
+}
+
+
+/* ============================================================
+   MODAL COMPONENTE
+============================================================ */
+
+function abrirModalComponente() {
+
+    const produtoId =
+        document.getElementById("produtoSimulacao").value;
+
+
+    if (!produtoId) {
+
+        alert("Selecione um produto primeiro.");
+
+        return;
+
+    }
+
+
+    document.getElementById("modalComponente").style.display =
+        "flex";
+
+}
+
+
+function fecharModalComponente() {
+
+    document.getElementById("modalComponente").style.display =
+        "none";
+
+}
+
+
+/* ============================================================
+   CRIAR COMPONENTE
+============================================================ */
+
+async function criarComponente() {
+
+    const produtoId =
+        document.getElementById("produtoSimulacao").value;
+
+
+    const nome =
+        document.getElementById("nomeComponente")
+        .value
+        .trim();
+
+
+    const quantidade =
+        document.getElementById("quantidadeComponente").value;
+
+
+    const embalagem =
+        document.getElementById("embalagemComponente")
+        .value
+        .trim();
+
+
+    const capacidade =
+        document.getElementById("capacidadeComponente").value;
+
+
+    if (
+        !produtoId ||
+        !nome ||
+        !quantidade ||
+        !embalagem ||
+        !capacidade
+    ) {
+
+        alert("Preencha todos os campos.");
+
+        return;
+
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("componentes")
+            .insert([{
+
+                produto_id: produtoId,
+
+                nome: nome,
+
+                quantidade: Number(quantidade),
+
+                embalagem: embalagem,
+
+                capacidade: Number(capacidade)
+
+            }]);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao criar componente.");
+
+        return;
+
+    }
+
+
+    alert("Componente criado.");
+
+
+    document.getElementById("nomeComponente").value = "";
+
+    document.getElementById("quantidadeComponente").value = "";
+
+    document.getElementById("embalagemComponente").value = "";
+
+    document.getElementById("capacidadeComponente").value = "";
+
+
+    fecharModalComponente();
+
+    carregarComponentes();
+
+}
+
+
+/* ============================================================
+   EXCLUIR COMPONENTE
+============================================================ */
+
+async function excluirComponente() {
+
+    if (!componenteSelecionado) {
+
+        alert("Selecione um componente.");
+
+        return;
+
+    }
+
+
+    if (!confirm("Deseja realmente excluir este componente?")) {
+
+        return;
+
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("componentes")
+            .delete()
+            .eq("id", componenteSelecionado);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao excluir componente.");
+
+        return;
+
+    }
+
+
+    alert("Componente excluído.");
+
+
+    componenteSelecionado = null;
+
+    carregarComponentes();
+
+}
+
+
+/* ============================================================
+   CALCULAR PRODUÇÃO
+============================================================ */
+
+async function calcularProducao() {
+
+    const produtoId =
+        document.getElementById("produtoSimulacao").value;
+
+
+    const quantidadeProducao =
+        Number(
+            document.getElementById("quantidadeProducao").value
+        );
+
+
+    if (!produtoId) {
+
+        alert("Selecione um produto.");
+
+        return;
+
+    }
+
+
+    if (!quantidadeProducao || quantidadeProducao <= 0) {
+
+        alert("Digite uma quantidade de produção válida.");
+
+        return;
+
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("componentes")
+            .select("*")
+            .eq("produto_id", produtoId);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Erro ao buscar componentes.");
+
+        return;
+
+    }
+
+
+    if (!data || data.length === 0) {
+
+        alert("Esse produto não possui componentes.");
+
+        return;
+
+    }
+
+
+    let mensagem =
+        "Materiais necessários:\n\n";
+
+
+    data.forEach(componente => {
+
+        const necessario =
+            quantidadeProducao *
+            Number(componente.quantidade);
+
+
+        const embalagens =
+            Math.ceil(
+                necessario /
+                Number(componente.capacidade)
+            );
+
+
+        mensagem +=
+            `${componente.nome}: ` +
+            `${necessario} unidades ` +
+            `→ ${embalagens} ${componente.embalagem}\n`;
+
+    });
+
+
+    alert(mensagem);
+
+}
+
+
+/* ============================================================
+   INICIAR SISTEMA
+============================================================ */
+
+async function iniciarSistema() {
+
+    await carregarOP();
+
+    await carregarProdutosSimulacao();
+
+}
+
+
+iniciarSistema();
+
+</script>
+
+</body>
+</html>
+```
