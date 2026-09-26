@@ -1,172 +1,2925 @@
-```javascript
-async function carregarComponentes() {
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-    const produtoId =
-        document.getElementById(
-            "produtoSimulacao"
-        ).value;
+<head>
 
+    <meta charset="UTF-8">
 
-    const tabela =
-        document.getElementById(
-            "tabelaComponentes"
-        );
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-
-    // Só limpa a seleção quando estamos
-    // realmente carregando outro produto
-    componenteSelecionado = null;
+    <title>Sistema de Produção</title>
 
 
-    tabela.innerHTML = "";
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
-    if (!produtoId) {
+    <style>
 
-        tabela.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="4"
-                    class="mensagem-vazia">
-
-                    Selecione um produto.
-
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
 
-    const { data, error } =
-        await supabaseClient
-            .from("componentes")
-            .select("*")
-            .eq(
-                "produto_id",
-                produtoId
-            )
-            .order("nome");
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f2f4f7;
+            color: #222;
+        }
 
 
-    if (error) {
+        /* =========================
+           MENU
+        ========================= */
 
-        console.error(error);
-
-        alert(
-            "Erro ao carregar componentes: " +
-            error.message
-        );
-
-        return;
-    }
-
-
-    componentes = data || [];
+        header {
+            background: #1f2937;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
 
-    if (componentes.length === 0) {
-
-        tabela.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="4"
-                    class="mensagem-vazia">
-
-                    Nenhum componente cadastrado.
-
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-    }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
 
 
-    componentes.forEach(
-        componente => {
+        nav {
+            display: flex;
+            gap: 10px;
+        }
 
-            const linha =
-                document.createElement(
-                    "tr"
+
+        nav button {
+            background: #374151;
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+
+        nav button:hover {
+            background: #4b5563;
+        }
+
+
+        nav button.ativo {
+            background: #2563eb;
+        }
+
+
+        /* =========================
+           PÁGINAS
+        ========================= */
+
+        .pagina {
+            display: none;
+            padding: 25px;
+        }
+
+
+        .pagina.ativa {
+            display: block;
+        }
+
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+
+        .titulo {
+            margin-bottom: 20px;
+        }
+
+
+        .titulo h2 {
+            margin: 0 0 5px 0;
+        }
+
+
+        .titulo p {
+            margin: 0;
+            color: #666;
+        }
+
+
+        /* =========================
+           CARDS
+        ========================= */
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+
+        /* =========================
+           FORMULÁRIOS
+        ========================= */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .campo label {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+
+        .campo input,
+        .campo select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+
+        .campo input:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+
+        /* =========================
+           BOTÕES
+        ========================= */
+
+        .botoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+
+        /* =========================
+           TABELAS
+        ========================= */
+
+        .tabela-container {
+            overflow-x: auto;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+
+        th {
+            background: #1f2937;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+
+        td {
+            padding: 11px;
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+
+        tr.selecionada {
+            background: #dbeafe !important;
+        }
+
+
+        /* =========================
+           RESULTADO
+        ========================= */
+
+        .resultado {
+            margin-top: 20px;
+        }
+
+
+        .resultado h3 {
+            margin-bottom: 10px;
+        }
+
+
+        .mensagem-vazia {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
+
+
+        /* =========================
+           STATUS
+        ========================= */
+
+        .status {
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: none;
+        }
+
+
+        .status.sucesso {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+
+        .status.erro {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+
+        /* =========================
+           MODAL
+        ========================= */
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .modal.ativo {
+            display: flex;
+        }
+
+
+        .modal-conteudo {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+
+        .modal-conteudo h3 {
+            margin-top: 0;
+        }
+
+
+        /* =========================
+           RESPONSIVO
+        ========================= */
+
+        @media (max-width: 800px) {
+
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+
+            nav {
+                width: 100%;
+                flex-direction: column;
+            }
+
+
+            nav button {
+                width: 100%;
+            }
+
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+
+            .pagina {
+                padding: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         MENU
+    ====================================================== -->
+
+    <header>
+
+        <h1>SISTEMA DE PRODUÇÃO</h1>
+
+
+        <nav>
+
+            <button
+                id="btnOrdem"
+                class="ativo"
+                onclick="mostrarPagina('ordem')">
+
+                Ordem de Produção
+
+            </button>
+
+
+            <button
+                id="btnSimulacao"
+                onclick="mostrarPagina('simulacao')">
+
+                Simulação de Produção
+
+            </button>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =====================================================
+         ORDEM DE PRODUÇÃO
+    ====================================================== -->
+
+    <section
+        id="paginaOrdem"
+        class="pagina ativa">
+
+        <div class="container">
+
+            <div class="titulo">
+
+                <h2>Ordem de Produção</h2>
+
+                <p>
+                    Cadastre e consulte os produtos da produção.
+                </p>
+
+            </div>
+
+
+            <div id="statusOP"
+                 class="status">
+            </div>
+
+
+            <!-- PESQUISA -->
+
+            <div class="card">
+
+                <div class="campo">
+
+                    <label>Pesquisar</label>
+
+                    <input
+                        type="text"
+                        id="pesquisaOP"
+                        placeholder="Código, linha ou ordem..."
+                        oninput="pesquisarOP()">
+
+                </div>
+
+            </div>
+
+
+            <!-- FORMULÁRIO -->
+
+            <div class="card">
+
+                <div class="form-grid">
+
+                    <div class="campo">
+
+                        <label>
+                            Código do Produto
+                        </label>
+
+                        <input
+                            type="text"
+                            id="codigoOP"
+                            placeholder="Ex: PROD001">
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Linha do Produto
+                        </label>
+
+                        <input
+                            type="text"
+                            id="linhaOP"
+                            placeholder="Ex: Linha 01">
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Quantidade por Embalagem
+                        </label>
+
+                        <input
+                            type="number"
+                            id="quantidadeEmbalagemOP"
+                            min="1"
+                            placeholder="Ex: 100">
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Ordem
+                        </label>
+
+                        <input
+                            type="number"
+                            id="ordemOP"
+                            min="1"
+                            placeholder="Ex: 10">
+
+                    </div>
+
+                </div>
+
+
+                <div class="botoes">
+
+                    <button
+                        class="btn btn-success"
+                        onclick="cadastrarOP()">
+
+                        Cadastrar
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-warning"
+                        onclick="editarOP()">
+
+                        Editar
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-danger"
+                        onclick="excluirOP()">
+
+                        Excluir
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-secondary"
+                        onclick="limparOP()">
+
+                        Limpar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- TABELA -->
+
+            <div class="card">
+
+                <div class="tabela-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Código</th>
+
+                                <th>Linha</th>
+
+                                <th>
+                                    Qtd. Embalagem
+                                </th>
+
+                                <th>Ordem</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="tabelaOP">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         SIMULAÇÃO DE PRODUÇÃO
+    ====================================================== -->
+
+    <section
+        id="paginaSimulacao"
+        class="pagina">
+
+        <div class="container">
+
+            <div class="titulo">
+
+                <h2>
+                    Simulação de Produção
+                </h2>
+
+                <p>
+                    Informe a quantidade que deseja produzir
+                    para calcular os materiais necessários.
+                </p>
+
+            </div>
+
+
+            <div id="statusSimulacao"
+                 class="status">
+            </div>
+
+
+            <!-- PRODUTO -->
+
+            <div class="card">
+
+                <div class="form-grid">
+
+                    <div class="campo">
+
+                        <label>
+                            Produto
+                        </label>
+
+                        <select
+                            id="produtoSimulacao"
+                            onchange="carregarComponentes()">
+
+                            <option value="">
+                                Selecione um produto
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="campo">
+
+                        <label>
+                            Quantidade a Produzir
+                        </label>
+
+                        <input
+                            type="number"
+                            id="quantidadeProducao"
+                            min="1"
+                            placeholder="Ex: 200">
+
+                    </div>
+
+                </div>
+
+
+                <div class="botoes">
+
+                    <button
+                        class="btn btn-success"
+                        onclick="abrirModalProduto()">
+
+                        Novo Produto
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-danger"
+                        onclick="excluirProduto()">
+
+                        Excluir Produto
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="abrirModalComponente()">
+
+                        Novo Componente
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-danger"
+                        onclick="excluirComponente()">
+
+                        Excluir Componente
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-warning"
+                        onclick="calcularProducao()">
+
+                        Calcular Produção
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- COMPONENTES -->
+
+            <div class="card">
+
+                <h3>
+                    Componentes do Produto
+                </h3>
+
+
+                <div class="tabela-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Componente
+                                </th>
+
+                                <th>
+                                    Qtd. por Produto
+                                </th>
+
+                                <th>
+                                    Embalagem
+                                </th>
+
+                                <th>
+                                    Qtd. por Embalagem
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="tabelaComponentes">
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="mensagem-vazia">
+
+                                    Selecione um produto.
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- RESULTADO -->
+
+            <div
+                class="card resultado"
+                id="resultadoSimulacao">
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MODAL PRODUTO
+    ====================================================== -->
+
+    <div
+        id="modalProduto"
+        class="modal">
+
+        <div class="modal-conteudo">
+
+            <h3>
+                Novo Produto
+            </h3>
+
+
+            <div class="campo">
+
+                <label>
+                    Nome do Produto
+                </label>
+
+                <input
+                    type="text"
+                    id="nomeNovoProduto"
+                    placeholder="Ex: Produto A">
+
+            </div>
+
+
+            <br>
+
+
+            <div class="botoes">
+
+                <button
+                    class="btn btn-success"
+                    onclick="criarProduto()">
+
+                    Cadastrar
+
+                </button>
+
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="fecharModalProduto()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL COMPONENTE
+    ====================================================== -->
+
+    <div
+        id="modalComponente"
+        class="modal">
+
+        <div class="modal-conteudo">
+
+            <h3>
+                Novo Componente
+            </h3>
+
+
+            <div class="campo">
+
+                <label>
+                    Componente
+                </label>
+
+                <input
+                    type="text"
+                    id="nomeComponente"
+                    placeholder="Ex: Parafuso">
+
+            </div>
+
+
+            <br>
+
+
+            <div class="campo">
+
+                <label>
+                    Quantidade por Produto
+                </label>
+
+                <input
+                    type="number"
+                    id="quantidadeComponente"
+                    min="0"
+                    step="0.01"
+                    placeholder="Ex: 4">
+
+            </div>
+
+
+            <br>
+
+
+            <div class="campo">
+
+                <label>
+                    Embalagem
+                </label>
+
+                <input
+                    type="text"
+                    id="embalagemComponente"
+                    placeholder="Ex: Caixa">
+
+            </div>
+
+
+            <br>
+
+
+            <div class="campo">
+
+                <label>
+                    Quantidade por Embalagem
+                </label>
+
+                <input
+                    type="number"
+                    id="capacidadeComponente"
+                    min="1"
+                    placeholder="Ex: 100">
+
+            </div>
+
+
+            <br>
+
+
+            <div class="botoes">
+
+                <button
+                    class="btn btn-success"
+                    onclick="criarComponente()">
+
+                    Cadastrar
+
+                </button>
+
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="fecharModalComponente()">
+
+                    Cancelar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+
+        /* =====================================================
+           CONFIGURAÇÃO SUPABASE
+        ====================================================== */
+
+        const SUPABASE_URL =
+            "https://bhvyqqrywhnhnbhrryzy.supabase.co";
+
+
+        const SUPABASE_KEY =
+            "sb_publishable_gLVTUFpnrkbAMrBvhI-ukg_nbFwDtXH";
+
+
+        const supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        /* =====================================================
+           VARIÁVEIS
+        ====================================================== */
+
+        let produtosOP = [];
+
+        let produtosSimulacao = [];
+
+        let componentes = [];
+
+        let produtoOPSelecionado = null;
+
+        let componenteSelecionado = null;
+
+
+        /* =====================================================
+           MENSAGENS
+        ====================================================== */
+
+        function mostrarStatus(
+            elemento,
+            mensagem,
+            tipo = "sucesso"
+        ) {
+
+            const status =
+                document.getElementById(elemento);
+
+
+            status.textContent =
+                mensagem;
+
+
+            status.className =
+                "status " + tipo;
+
+
+            setTimeout(() => {
+
+                status.className =
+                    "status";
+
+            }, 4000);
+
+        }
+
+
+        /* =====================================================
+           MENU
+        ====================================================== */
+
+        function mostrarPagina(pagina) {
+
+            const ordem =
+                document.getElementById(
+                    "paginaOrdem"
                 );
 
 
-            /*
-             * QUANDO CLICAR NO COMPONENTE
-             */
-            linha.onclick =
-                function() {
+            const simulacao =
+                document.getElementById(
+                    "paginaSimulacao"
+                );
 
-                    // Remove a seleção de todas
-                    // as outras linhas
-                    document
-                        .querySelectorAll(
-                            "#tabelaComponentes tr"
-                        )
-                        .forEach(
-                            tr =>
-                                tr.classList.remove(
-                                    "selecionada"
-                                )
+
+            const btnOrdem =
+                document.getElementById(
+                    "btnOrdem"
+                );
+
+
+            const btnSimulacao =
+                document.getElementById(
+                    "btnSimulacao"
+                );
+
+
+            ordem.classList.remove(
+                "ativa"
+            );
+
+
+            simulacao.classList.remove(
+                "ativa"
+            );
+
+
+            btnOrdem.classList.remove(
+                "ativo"
+            );
+
+
+            btnSimulacao.classList.remove(
+                "ativo"
+            );
+
+
+            if (pagina === "ordem") {
+
+                ordem.classList.add(
+                    "ativa"
+                );
+
+
+                btnOrdem.classList.add(
+                    "ativo"
+                );
+
+
+                carregarOP();
+
+            }
+
+
+            if (pagina === "simulacao") {
+
+                simulacao.classList.add(
+                    "ativa"
+                );
+
+
+                btnSimulacao.classList.add(
+                    "ativo"
+                );
+
+
+                carregarProdutosSimulacao();
+
+            }
+
+        }
+
+
+        /* =====================================================
+           ORDEM DE PRODUÇÃO
+        ====================================================== */
+
+        async function carregarOP() {
+
+            const { data, error } =
+                await supabaseClient
+                    .from("produtos_op")
+                    .select("*")
+                    .order(
+                        "ordem",
+                        {
+                            ascending: true
+                        }
+                    );
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                mostrarStatus(
+                    "statusOP",
+                    "Erro ao carregar os produtos: " +
+                    error.message,
+                    "erro"
+                );
+
+
+                return;
+
+            }
+
+
+            produtosOP =
+                data || [];
+
+
+            renderizarOP();
+
+        }
+
+
+        function renderizarOP(
+            lista = produtosOP
+        ) {
+
+            const tabela =
+                document.getElementById(
+                    "tabelaOP"
+                );
+
+
+            tabela.innerHTML = "";
+
+
+            if (lista.length === 0) {
+
+                tabela.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="mensagem-vazia">
+
+                            Nenhum produto cadastrado.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            lista.forEach(
+                produto => {
+
+                    const linha =
+                        document.createElement(
+                            "tr"
                         );
 
 
-                    // Guarda o ID do componente
-                    componenteSelecionado =
-                        componente.id;
+                    if (
+                        produtoOPSelecionado ===
+                        produto.id
+                    ) {
+
+                        linha.classList.add(
+                            "selecionada"
+                        );
+
+                    }
 
 
-                    // Marca esta linha como selecionada
-                    linha.classList.add(
-                        "selecionada"
+                    linha.onclick =
+                        function() {
+
+                            produtoOPSelecionado =
+                                produto.id;
+
+
+                            document.getElementById(
+                                "codigoOP"
+                            ).value =
+                                produto.codigo;
+
+
+                            document.getElementById(
+                                "linhaOP"
+                            ).value =
+                                produto.linha;
+
+
+                            document.getElementById(
+                                "quantidadeEmbalagemOP"
+                            ).value =
+                                produto.quantidade_embalagem;
+
+
+                            document.getElementById(
+                                "ordemOP"
+                            ).value =
+                                produto.ordem;
+
+
+                            renderizarOP(lista);
+
+                        };
+
+
+                    linha.innerHTML = `
+
+                        <td>
+                            ${produto.codigo}
+                        </td>
+
+                        <td>
+                            ${produto.linha}
+                        </td>
+
+                        <td>
+                            ${produto.quantidade_embalagem}
+                        </td>
+
+                        <td>
+                            ${produto.ordem}
+                        </td>
+
+                    `;
+
+
+                    tabela.appendChild(
+                        linha
+                    );
+
+                }
+            );
+
+        }
+
+
+        async function cadastrarOP() {
+
+            const codigo =
+                document
+                    .getElementById(
+                        "codigoOP"
+                    )
+                    .value
+                    .trim();
+
+
+            const linha =
+                document
+                    .getElementById(
+                        "linhaOP"
+                    )
+                    .value
+                    .trim();
+
+
+            const quantidade =
+                document
+                    .getElementById(
+                        "quantidadeEmbalagemOP"
+                    )
+                    .value;
+
+
+            const ordem =
+                document
+                    .getElementById(
+                        "ordemOP"
+                    )
+                    .value;
+
+
+            if (
+                !codigo ||
+                !linha ||
+                !quantidade ||
+                !ordem
+            ) {
+
+                alert(
+                    "Preencha todos os campos."
+                );
+
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from("produtos_op")
+                    .insert([{
+
+                        codigo:
+                            codigo,
+
+                        linha:
+                            linha,
+
+                        quantidade_embalagem:
+                            Number(
+                                quantidade
+                            ),
+
+                        ordem:
+                            Number(
+                                ordem
+                            )
+
+                    }]);
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao cadastrar: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            limparOP();
+
+
+            await carregarOP();
+
+
+            mostrarStatus(
+                "statusOP",
+                "Produto cadastrado no banco com sucesso."
+            );
+
+        }
+
+
+        async function editarOP() {
+
+            if (
+                produtoOPSelecionado ===
+                null
+            ) {
+
+                alert(
+                    "Selecione um produto na tabela."
+                );
+
+
+                return;
+
+            }
+
+
+            const codigo =
+                document
+                    .getElementById(
+                        "codigoOP"
+                    )
+                    .value
+                    .trim();
+
+
+            const linha =
+                document
+                    .getElementById(
+                        "linhaOP"
+                    )
+                    .value
+                    .trim();
+
+
+            const quantidade =
+                document
+                    .getElementById(
+                        "quantidadeEmbalagemOP"
+                    )
+                    .value;
+
+
+            const ordem =
+                document
+                    .getElementById(
+                        "ordemOP"
+                    )
+                    .value;
+
+
+            if (
+                !codigo ||
+                !linha ||
+                !quantidade ||
+                !ordem
+            ) {
+
+                alert(
+                    "Preencha todos os campos."
+                );
+
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from("produtos_op")
+                    .update({
+
+                        codigo:
+                            codigo,
+
+                        linha:
+                            linha,
+
+                        quantidade_embalagem:
+                            Number(
+                                quantidade
+                            ),
+
+                        ordem:
+                            Number(
+                                ordem
+                            )
+
+                    })
+                    .eq(
+                        "id",
+                        produtoOPSelecionado
                     );
 
 
-                    console.log(
-                        "Componente selecionado:",
-                        componente
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao editar: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            limparOP();
+
+
+            await carregarOP();
+
+
+            mostrarStatus(
+                "statusOP",
+                "Produto alterado com sucesso."
+            );
+
+        }
+
+
+        async function excluirOP() {
+
+            if (
+                produtoOPSelecionado ===
+                null
+            ) {
+
+                alert(
+                    "Selecione um produto na tabela."
+                );
+
+
+                return;
+
+            }
+
+
+            const produto =
+                produtosOP.find(
+                    item =>
+                        item.id ===
+                        produtoOPSelecionado
+                );
+
+
+            if (!produto) {
+
+                return;
+
+            }
+
+
+            const confirmar =
+                confirm(
+                    `Deseja excluir o produto "${produto.codigo}"?`
+                );
+
+
+            if (!confirmar) {
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from("produtos_op")
+                    .delete()
+                    .eq(
+                        "id",
+                        produtoOPSelecionado
                     );
 
-                };
+
+            if (error) {
+
+                console.error(error);
 
 
-            linha.innerHTML = `
+                alert(
+                    "Erro ao excluir: " +
+                    error.message
+                );
 
-                <td>
-                    ${componente.nome}
-                </td>
 
-                <td>
-                    ${componente.quantidade}
-                </td>
+                return;
 
-                <td>
-                    ${componente.embalagem}
-                </td>
+            }
 
-                <td>
-                    ${componente.capacidade}
-                </td>
+
+            limparOP();
+
+
+            await carregarOP();
+
+
+            mostrarStatus(
+                "statusOP",
+                "Produto excluído com sucesso."
+            );
+
+        }
+
+
+        function limparOP() {
+
+            document.getElementById(
+                "codigoOP"
+            ).value = "";
+
+
+            document.getElementById(
+                "linhaOP"
+            ).value = "";
+
+
+            document.getElementById(
+                "quantidadeEmbalagemOP"
+            ).value = "";
+
+
+            document.getElementById(
+                "ordemOP"
+            ).value = "";
+
+
+            produtoOPSelecionado =
+                null;
+
+
+            renderizarOP();
+
+        }
+
+
+        function pesquisarOP() {
+
+            const texto =
+                document
+                    .getElementById(
+                        "pesquisaOP"
+                    )
+                    .value
+                    .toLowerCase();
+
+
+            const resultado =
+                produtosOP.filter(
+                    produto =>
+
+                        String(
+                            produto.codigo
+                        )
+                            .toLowerCase()
+                            .includes(texto)
+
+                        ||
+
+                        String(
+                            produto.linha
+                        )
+                            .toLowerCase()
+                            .includes(texto)
+
+                        ||
+
+                        String(
+                            produto.ordem
+                        )
+                            .includes(texto)
+                );
+
+
+            renderizarOP(
+                resultado
+            );
+
+        }
+
+
+        /* =====================================================
+           PRODUTOS DA SIMULAÇÃO
+        ====================================================== */
+
+        async function carregarProdutosSimulacao() {
+
+            const select =
+                document.getElementById(
+                    "produtoSimulacao"
+                );
+
+
+            const produtoAtual =
+                select.value;
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from(
+                        "produtos_simulacao"
+                    )
+                    .select("*")
+                    .order("nome");
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                mostrarStatus(
+                    "statusSimulacao",
+                    "Erro ao carregar produtos: " +
+                    error.message,
+                    "erro"
+                );
+
+
+                return;
+
+            }
+
+
+            produtosSimulacao =
+                data || [];
+
+
+            select.innerHTML = `
+
+                <option value="">
+                    Selecione um produto
+                </option>
 
             `;
 
 
-            tabela.appendChild(
-                linha
+            produtosSimulacao.forEach(
+                produto => {
+
+                    const option =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    option.value =
+                        produto.id;
+
+
+                    option.textContent =
+                        produto.nome;
+
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+            if (
+                produtoAtual &&
+                produtosSimulacao.some(
+                    produto =>
+                        String(
+                            produto.id
+                        ) ===
+                        String(
+                            produtoAtual
+                        )
+                )
+            ) {
+
+                select.value =
+                    produtoAtual;
+
+
+                await carregarComponentes();
+
+            }
+
+        }
+
+
+        /* =====================================================
+           COMPONENTES
+        ====================================================== */
+
+        async function carregarComponentes() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            const tabela =
+                document.getElementById(
+                    "tabelaComponentes"
+                );
+
+
+            /*
+             * Sempre que o produto muda,
+             * começamos sem nenhum componente selecionado.
+             */
+
+            componenteSelecionado =
+                null;
+
+
+            tabela.innerHTML = "";
+
+
+            if (!produtoId) {
+
+                tabela.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="mensagem-vazia">
+
+                            Selecione um produto.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from("componentes")
+                    .select("*")
+                    .eq(
+                        "produto_id",
+                        produtoId
+                    )
+                    .order("nome");
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao carregar componentes: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            componentes =
+                data || [];
+
+
+            if (componentes.length === 0) {
+
+                tabela.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="mensagem-vazia">
+
+                            Nenhum componente cadastrado.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+
+                return;
+
+            }
+
+
+            componentes.forEach(
+                componente => {
+
+                    const linha =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    /*
+                     * CLICOU NO COMPONENTE
+                     */
+
+                    linha.onclick =
+                        function() {
+
+                            /*
+                             * Remove a seleção
+                             * das outras linhas.
+                             */
+
+                            document
+                                .querySelectorAll(
+                                    "#tabelaComponentes tr"
+                                )
+                                .forEach(
+                                    tr => {
+
+                                        tr.classList.remove(
+                                            "selecionada"
+                                        );
+
+                                    }
+                                );
+
+
+                            /*
+                             * Guarda o ID
+                             * do componente.
+                             */
+
+                            componenteSelecionado =
+                                componente.id;
+
+
+                            /*
+                             * Marca a linha
+                             * clicada.
+                             */
+
+                            linha.classList.add(
+                                "selecionada"
+                            );
+
+
+                            console.log(
+                                "Componente selecionado:",
+                                componente
+                            );
+
+                        };
+
+
+                    linha.innerHTML = `
+
+                        <td>
+                            ${componente.nome}
+                        </td>
+
+                        <td>
+                            ${componente.quantidade}
+                        </td>
+
+                        <td>
+                            ${componente.embalagem}
+                        </td>
+
+                        <td>
+                            ${componente.capacidade}
+                        </td>
+
+                    `;
+
+
+                    tabela.appendChild(
+                        linha
+                    );
+
+                }
             );
 
         }
-    );
 
-}
+
+        /* =====================================================
+           NOVO PRODUTO
+        ====================================================== */
+
+        function abrirModalProduto() {
+
+            document
+                .getElementById(
+                    "modalProduto"
+                )
+                .classList.add(
+                    "ativo"
+                );
+
+
+            document
+                .getElementById(
+                    "nomeNovoProduto"
+                )
+                .focus();
+
+        }
+
+
+        function fecharModalProduto() {
+
+            document
+                .getElementById(
+                    "modalProduto"
+                )
+                .classList.remove(
+                    "ativo"
+                );
+
+        }
+
+
+        async function criarProduto() {
+
+            const nome =
+                document
+                    .getElementById(
+                        "nomeNovoProduto"
+                    )
+                    .value
+                    .trim();
+
+
+            if (!nome) {
+
+                alert(
+                    "Digite o nome do produto."
+                );
+
+
+                return;
+
+            }
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from(
+                        "produtos_simulacao"
+                    )
+                    .insert([{
+
+                        nome:
+                            nome
+
+                    }])
+                    .select()
+                    .single();
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                if (
+                    error.code ===
+                    "23505"
+                ) {
+
+                    alert(
+                        "Esse produto já existe."
+                    );
+
+                } else {
+
+                    alert(
+                        "Erro ao criar produto: " +
+                        error.message
+                    );
+
+                }
+
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "nomeNovoProduto"
+            ).value = "";
+
+
+            fecharModalProduto();
+
+
+            await carregarProdutosSimulacao();
+
+
+            document.getElementById(
+                "produtoSimulacao"
+            ).value =
+                data.id;
+
+
+            await carregarComponentes();
+
+
+            mostrarStatus(
+                "statusSimulacao",
+                "Produto criado com sucesso."
+            );
+
+        }
+
+
+        /* =====================================================
+           EXCLUIR PRODUTO
+        ====================================================== */
+
+        async function excluirProduto() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            if (!produtoId) {
+
+                alert(
+                    "Selecione um produto para excluir."
+                );
+
+
+                return;
+
+            }
+
+
+            const produto =
+                produtosSimulacao.find(
+                    item =>
+                        String(item.id) ===
+                        String(produtoId)
+                );
+
+
+            if (!produto) {
+
+                return;
+
+            }
+
+
+            const confirmar =
+                confirm(
+
+                    `Tem certeza que deseja excluir o produto "${produto.nome}"?\n\n` +
+
+                    `Todos os componentes desse produto também serão excluídos.`
+
+                );
+
+
+            if (!confirmar) {
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from(
+                        "produtos_simulacao"
+                    )
+                    .delete()
+                    .eq(
+                        "id",
+                        produtoId
+                    );
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao excluir produto: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "produtoSimulacao"
+            ).value = "";
+
+
+            document.getElementById(
+                "tabelaComponentes"
+            ).innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="4"
+                        class="mensagem-vazia">
+
+                        Selecione um produto.
+
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            document.getElementById(
+                "resultadoSimulacao"
+            ).innerHTML = "";
+
+
+            componenteSelecionado =
+                null;
+
+
+            await carregarProdutosSimulacao();
+
+
+            mostrarStatus(
+                "statusSimulacao",
+                "Produto excluído com sucesso."
+            );
+
+        }
+
+
+        /* =====================================================
+           NOVO COMPONENTE
+        ====================================================== */
+
+        function abrirModalComponente() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            if (!produtoId) {
+
+                alert(
+                    "Primeiro selecione um produto."
+                );
+
+
+                return;
+
+            }
+
+
+            document
+                .getElementById(
+                    "modalComponente"
+                )
+                .classList.add(
+                    "ativo"
+                );
+
+        }
+
+
+        function fecharModalComponente() {
+
+            document
+                .getElementById(
+                    "modalComponente"
+                )
+                .classList.remove(
+                    "ativo"
+                );
+
+        }
+
+
+        async function criarComponente() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            if (!produtoId) {
+
+                alert(
+                    "Selecione um produto."
+                );
+
+
+                return;
+
+            }
+
+
+            const nome =
+                document
+                    .getElementById(
+                        "nomeComponente"
+                    )
+                    .value
+                    .trim();
+
+
+            const quantidade =
+                document
+                    .getElementById(
+                        "quantidadeComponente"
+                    )
+                    .value;
+
+
+            const embalagem =
+                document
+                    .getElementById(
+                        "embalagemComponente"
+                    )
+                    .value
+                    .trim();
+
+
+            const capacidade =
+                document
+                    .getElementById(
+                        "capacidadeComponente"
+                    )
+                    .value;
+
+
+            if (
+                !nome ||
+                !quantidade ||
+                !embalagem ||
+                !capacidade
+            ) {
+
+                alert(
+                    "Preencha todos os campos."
+                );
+
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from("componentes")
+                    .insert([{
+
+                        produto_id:
+                            produtoId,
+
+                        nome:
+                            nome,
+
+                        quantidade:
+                            Number(
+                                quantidade
+                            ),
+
+                        embalagem:
+                            embalagem,
+
+                        capacidade:
+                            Number(
+                                capacidade
+                            )
+
+                    }]);
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao cadastrar componente: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "nomeComponente"
+            ).value = "";
+
+
+            document.getElementById(
+                "quantidadeComponente"
+            ).value = "";
+
+
+            document.getElementById(
+                "embalagemComponente"
+            ).value = "";
+
+
+            document.getElementById(
+                "capacidadeComponente"
+            ).value = "";
+
+
+            fecharModalComponente();
+
+
+            await carregarComponentes();
+
+
+            mostrarStatus(
+                "statusSimulacao",
+                "Componente cadastrado com sucesso."
+            );
+
+        }
+
+
+        /* =====================================================
+           EXCLUIR COMPONENTE
+        ====================================================== */
+
+        async function excluirComponente() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            if (!produtoId) {
+
+                alert(
+                    "Selecione um produto."
+                );
+
+
+                return;
+
+            }
+
+
+            if (
+                componenteSelecionado ===
+                null
+            ) {
+
+                alert(
+                    "Selecione um componente na tabela."
+                );
+
+
+                return;
+
+            }
+
+
+            const componente =
+                componentes.find(
+                    item =>
+                        item.id ===
+                        componenteSelecionado
+                );
+
+
+            if (!componente) {
+
+                alert(
+                    "Componente selecionado não encontrado."
+                );
+
+
+                return;
+
+            }
+
+
+            const confirmar =
+                confirm(
+
+                    `Deseja excluir o componente "${componente.nome}"?`
+
+                );
+
+
+            if (!confirmar) {
+
+                return;
+
+            }
+
+
+            const { error } =
+                await supabaseClient
+                    .from("componentes")
+                    .delete()
+                    .eq(
+                        "id",
+                        componenteSelecionado
+                    );
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao excluir componente: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            componenteSelecionado =
+                null;
+
+
+            await carregarComponentes();
+
+
+            mostrarStatus(
+                "statusSimulacao",
+                "Componente excluído com sucesso."
+            );
+
+        }
+
+
+        /* =====================================================
+           CALCULAR PRODUÇÃO
+        ====================================================== */
+
+        async function calcularProducao() {
+
+            const produtoId =
+                document.getElementById(
+                    "produtoSimulacao"
+                ).value;
+
+
+            const quantidade =
+                Number(
+                    document.getElementById(
+                        "quantidadeProducao"
+                    ).value
+                );
+
+
+            const resultado =
+                document.getElementById(
+                    "resultadoSimulacao"
+                );
+
+
+            if (!produtoId) {
+
+                alert(
+                    "Selecione um produto."
+                );
+
+
+                return;
+
+            }
+
+
+            if (
+                !quantidade ||
+                quantidade <= 0
+            ) {
+
+                alert(
+                    "Informe uma quantidade válida para produzir."
+                );
+
+
+                return;
+
+            }
+
+
+            const produto =
+                produtosSimulacao.find(
+                    item =>
+                        String(item.id) ===
+                        String(produtoId)
+                );
+
+
+            if (!produto) {
+
+                alert(
+                    "Produto não encontrado."
+                );
+
+
+                return;
+
+            }
+
+
+            const { data, error } =
+                await supabaseClient
+                    .from("componentes")
+                    .select("*")
+                    .eq(
+                        "produto_id",
+                        produtoId
+                    )
+                    .order("nome");
+
+
+            if (error) {
+
+                console.error(error);
+
+
+                alert(
+                    "Erro ao buscar componentes: " +
+                    error.message
+                );
+
+
+                return;
+
+            }
+
+
+            const lista =
+                data || [];
+
+
+            if (lista.length === 0) {
+
+                alert(
+                    "Esse produto não possui componentes cadastrados."
+                );
+
+
+                return;
+
+            }
+
+
+            let html = `
+
+                <h3>
+                    LISTA DE SEPARAÇÃO
+                </h3>
+
+
+                <p>
+
+                    Produto:
+
+                    <strong>
+                        ${produto.nome}
+                    </strong>
+
+                </p>
+
+
+                <p>
+
+                    Quantidade a produzir:
+
+                    <strong>
+                        ${formatarNumero(
+                            quantidade
+                        )}
+                    </strong>
+
+                </p>
+
+
+                <div class="tabela-container">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Componente
+                                </th>
+
+                                <th>
+                                    Necessário
+                                </th>
+
+                                <th>
+                                    Embalagem
+                                </th>
+
+                                <th>
+                                    Qtd. por Embalagem
+                                </th>
+
+                                <th>
+                                    Pegar
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+            `;
+
+
+            lista.forEach(
+                componente => {
+
+                    const necessario =
+                        quantidade *
+                        Number(
+                            componente.quantidade
+                        );
+
+
+                    const embalagens =
+                        Math.ceil(
+                            necessario /
+                            Number(
+                                componente.capacidade
+                            )
+                        );
+
+
+                    html += `
+
+                        <tr>
+
+                            <td>
+                                ${componente.nome}
+                            </td>
+
+                            <td>
+                                ${formatarNumero(
+                                    necessario
+                                )}
+                            </td>
+
+                            <td>
+                                ${componente.embalagem}
+                            </td>
+
+                            <td>
+                                ${formatarNumero(
+                                    componente.capacidade
+                                )}
+                            </td>
+
+                            <td>
+
+                                <strong>
+                                    ${embalagens}
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            );
+
+
+            html += `
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            `;
+
+
+            resultado.innerHTML =
+                html;
+
+        }
+
+
+        /* =====================================================
+           FORMATAÇÃO
+        ====================================================== */
+
+        function formatarNumero(numero) {
+
+            return Number(numero)
+                .toLocaleString(
+                    "pt-BR",
+                    {
+                        maximumFractionDigits: 2
+                    }
+                );
+
+        }
+
+
+        /* =====================================================
+           INICIAR SISTEMA
+        ====================================================== */
+
+        async function iniciarSistema() {
+
+            console.log(
+                "Conectando ao Supabase..."
+            );
+
+
+            await carregarOP();
+
+
+            await carregarProdutosSimulacao();
+
+
+            console.log(
+                "Sistema conectado ao banco."
+            );
+
+        }
+
+
+        iniciarSistema();
+
+    </script>
+
+</body>
+
+</html>
 ```
