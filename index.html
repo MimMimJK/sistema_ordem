@@ -1,0 +1,832 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Consulta de Ordens</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background: #f4f6f8;
+        }
+
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+
+        /* ============================= */
+        /* PESQUISA */
+        /* ============================= */
+
+        .pesquisa {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+
+        .pesquisa label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+
+        .pesquisa input {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+
+        /* ============================= */
+        /* TABELA */
+        /* ============================= */
+
+        .tabela-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+
+        th {
+            background: #222;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+
+        tbody tr:hover {
+            background: #eeeeee;
+            cursor: pointer;
+        }
+
+
+        /* ============================= */
+        /* FORMULÁRIO */
+        /* ============================= */
+
+        .formulario {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+
+        .formulario h2 {
+            margin-top: 0;
+        }
+
+
+        .campos {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+
+        .campo label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+
+        .campo input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+
+        /* ============================= */
+        /* BOTÕES */
+        /* ============================= */
+
+        .botoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+
+        button {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+
+        #btnCadastrar {
+            background: #222;
+            color: white;
+        }
+
+
+        #btnEditar {
+            background: #666;
+            color: white;
+        }
+
+
+        #btnExcluir {
+            background: #b00020;
+            color: white;
+        }
+
+
+        #btnLimpar {
+            background: #ddd;
+        }
+
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+
+        /* ============================= */
+        /* RESPONSIVO */
+        /* ============================= */
+
+        @media (max-width: 800px) {
+
+            .campos {
+                grid-template-columns: 1fr 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 500px) {
+
+            body {
+                padding: 10px;
+            }
+
+
+            .campos {
+                grid-template-columns: 1fr;
+            }
+
+
+            .botoes {
+                flex-direction: column;
+            }
+
+
+            button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>Consulta de Ordens de Produção</h1>
+
+
+    <!-- ============================= -->
+    <!-- PESQUISA -->
+    <!-- ============================= -->
+
+    <div class="pesquisa">
+
+        <label for="pesquisa">
+            Pesquisar
+        </label>
+
+        <input
+            type="text"
+            id="pesquisa"
+            placeholder="Digite código, linha ou ordem..."
+        >
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- TABELA -->
+    <!-- ============================= -->
+
+    <div class="tabela-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Código</th>
+
+                    <th>Linha</th>
+
+                    <th>Qtd. Embalagem</th>
+
+                    <th>Ordem</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="tabelaProdutos">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- FORMULÁRIO -->
+    <!-- ============================= -->
+
+    <div class="formulario">
+
+        <h2>Cadastro de Produto</h2>
+
+
+        <div class="campos">
+
+
+            <div class="campo">
+
+                <label for="codigo">
+                    Código
+                </label>
+
+                <input
+                    type="text"
+                    id="codigo"
+                >
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="linha">
+                    Linha
+                </label>
+
+                <input
+                    type="text"
+                    id="linha"
+                >
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="embalagem">
+                    Qtd. por embalagem
+                </label>
+
+                <input
+                    type="number"
+                    id="embalagem"
+                >
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="ordem">
+                    Ordem
+                </label>
+
+                <input
+                    type="text"
+                    id="ordem"
+                >
+
+            </div>
+
+
+        </div>
+
+
+        <div class="botoes">
+
+
+            <button id="btnCadastrar">
+                Cadastrar
+            </button>
+
+
+            <button id="btnEditar">
+                Editar
+            </button>
+
+
+            <button id="btnExcluir">
+                Excluir
+            </button>
+
+
+            <button id="btnLimpar">
+                Limpar
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// ==========================================================
+// BANCO DE DADOS
+// ==========================================================
+
+
+// Recupera os produtos que já estão salvos
+// ou cria uma lista vazia caso seja a primeira vez.
+
+let produtos = JSON.parse(
+    localStorage.getItem("produtos")
+) || [];
+
+
+// Guarda qual produto está selecionado.
+
+let produtoSelecionado = null;
+
+
+// ==========================================================
+// ELEMENTOS DA TELA
+// ==========================================================
+
+const pesquisa = document.getElementById("pesquisa");
+
+const tabelaProdutos =
+    document.getElementById("tabelaProdutos");
+
+const codigo =
+    document.getElementById("codigo");
+
+const linha =
+    document.getElementById("linha");
+
+const embalagem =
+    document.getElementById("embalagem");
+
+const ordem =
+    document.getElementById("ordem");
+
+const btnCadastrar =
+    document.getElementById("btnCadastrar");
+
+const btnEditar =
+    document.getElementById("btnEditar");
+
+const btnExcluir =
+    document.getElementById("btnExcluir");
+
+const btnLimpar =
+    document.getElementById("btnLimpar");
+
+
+// ==========================================================
+// MOSTRAR PRODUTOS
+// ==========================================================
+
+function mostrarProdutos(lista) {
+
+    tabelaProdutos.innerHTML = "";
+
+
+    lista.forEach(function(produto) {
+
+        const tr = document.createElement("tr");
+
+
+        tr.innerHTML = `
+
+            <td>${produto.codigo}</td>
+
+            <td>${produto.linha}</td>
+
+            <td>${produto.embalagem}</td>
+
+            <td>${produto.ordem}</td>
+
+        `;
+
+
+        tr.addEventListener("click", function() {
+
+            selecionarProduto(produto);
+
+        });
+
+
+        tabelaProdutos.appendChild(tr);
+
+    });
+
+}
+
+
+// ==========================================================
+// PESQUISA
+// ==========================================================
+
+function pesquisar() {
+
+    const texto = pesquisa.value
+        .toLowerCase()
+        .trim();
+
+
+    if (texto === "") {
+
+        mostrarProdutos(produtos);
+
+        return;
+
+    }
+
+
+    const resultado = produtos.filter(function(produto) {
+
+        return (
+
+            produto.codigo
+                .toLowerCase()
+                .includes(texto)
+
+            ||
+
+            produto.linha
+                .toLowerCase()
+                .includes(texto)
+
+            ||
+
+            produto.ordem
+                .toLowerCase()
+                .includes(texto)
+
+        );
+
+    });
+
+
+    mostrarProdutos(resultado);
+
+}
+
+
+// ==========================================================
+// CADASTRAR
+// ==========================================================
+
+function cadastrarProduto() {
+
+    const codigoValor =
+        codigo.value.trim();
+
+    const linhaValor =
+        linha.value.trim();
+
+    const embalagemValor =
+        embalagem.value.trim();
+
+    const ordemValor =
+        ordem.value.trim();
+
+
+    // Verifica se os campos estão preenchidos.
+
+    if (
+        codigoValor === "" ||
+        linhaValor === "" ||
+        embalagemValor === "" ||
+        ordemValor === ""
+    ) {
+
+        alert("Preencha todos os campos.");
+
+        return;
+
+    }
+
+
+    // Cria o novo produto.
+
+    const novoProduto = {
+
+        codigo: codigoValor,
+
+        linha: linhaValor,
+
+        embalagem: embalagemValor,
+
+        ordem: ordemValor
+
+    };
+
+
+    // Adiciona o produto na lista.
+
+    produtos.push(novoProduto);
+
+
+    // Salva no navegador.
+
+    salvarProdutos();
+
+
+    // Atualiza a tabela.
+
+    mostrarProdutos(produtos);
+
+
+    // Limpa os campos.
+
+    limparCampos();
+
+
+    alert("Produto cadastrado com sucesso!");
+
+}
+
+
+// ==========================================================
+// SELECIONAR PRODUTO
+// ==========================================================
+
+function selecionarProduto(produto) {
+
+    produtoSelecionado = produto;
+
+
+    codigo.value =
+        produto.codigo;
+
+
+    linha.value =
+        produto.linha;
+
+
+    embalagem.value =
+        produto.embalagem;
+
+
+    ordem.value =
+        produto.ordem;
+
+}
+
+
+// ==========================================================
+// EDITAR
+// ==========================================================
+
+function editarProduto() {
+
+    if (produtoSelecionado === null) {
+
+        alert("Selecione um produto na tabela.");
+
+        return;
+
+    }
+
+
+    produtoSelecionado.codigo =
+        codigo.value.trim();
+
+
+    produtoSelecionado.linha =
+        linha.value.trim();
+
+
+    produtoSelecionado.embalagem =
+        embalagem.value.trim();
+
+
+    produtoSelecionado.ordem =
+        ordem.value.trim();
+
+
+    salvarProdutos();
+
+
+    mostrarProdutos(produtos);
+
+
+    limparCampos();
+
+
+    alert("Produto atualizado!");
+
+}
+
+
+// ==========================================================
+// EXCLUIR
+// ==========================================================
+
+function excluirProduto() {
+
+    if (produtoSelecionado === null) {
+
+        alert("Selecione um produto.");
+
+        return;
+
+    }
+
+
+    const confirmar = confirm(
+        "Deseja realmente excluir este produto?"
+    );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    const indice =
+        produtos.indexOf(produtoSelecionado);
+
+
+    produtos.splice(indice, 1);
+
+
+    salvarProdutos();
+
+
+    mostrarProdutos(produtos);
+
+
+    limparCampos();
+
+}
+
+
+// ==========================================================
+// LIMPAR
+// ==========================================================
+
+function limparCampos() {
+
+    codigo.value = "";
+
+    linha.value = "";
+
+    embalagem.value = "";
+
+    ordem.value = "";
+
+
+    produtoSelecionado = null;
+
+}
+
+
+// ==========================================================
+// SALVAR
+// ==========================================================
+
+function salvarProdutos() {
+
+    localStorage.setItem(
+        "produtos",
+        JSON.stringify(produtos)
+    );
+
+}
+
+
+// ==========================================================
+// EVENTOS DOS BOTÕES
+// ==========================================================
+
+
+// Botão Cadastrar
+
+btnCadastrar.addEventListener(
+    "click",
+    cadastrarProduto
+);
+
+
+// Botão Editar
+
+btnEditar.addEventListener(
+    "click",
+    editarProduto
+);
+
+
+// Botão Excluir
+
+btnExcluir.addEventListener(
+    "click",
+    excluirProduto
+);
+
+
+// Botão Limpar
+
+btnLimpar.addEventListener(
+    "click",
+    limparCampos
+);
+
+
+// Campo de pesquisa
+
+pesquisa.addEventListener(
+    "input",
+    pesquisar
+);
+
+
+// ==========================================================
+// INICIAR SISTEMA
+// ==========================================================
+
+mostrarProdutos(produtos);
+
+
+</script>
+
+
+</body>
+
+</html>
+```
