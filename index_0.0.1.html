@@ -1,0 +1,172 @@
+```javascript
+async function carregarComponentes() {
+
+    const produtoId =
+        document.getElementById(
+            "produtoSimulacao"
+        ).value;
+
+
+    const tabela =
+        document.getElementById(
+            "tabelaComponentes"
+        );
+
+
+    // Só limpa a seleção quando estamos
+    // realmente carregando outro produto
+    componenteSelecionado = null;
+
+
+    tabela.innerHTML = "";
+
+
+    if (!produtoId) {
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    class="mensagem-vazia">
+
+                    Selecione um produto.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("componentes")
+            .select("*")
+            .eq(
+                "produto_id",
+                produtoId
+            )
+            .order("nome");
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Erro ao carregar componentes: " +
+            error.message
+        );
+
+        return;
+    }
+
+
+    componentes = data || [];
+
+
+    if (componentes.length === 0) {
+
+        tabela.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="4"
+                    class="mensagem-vazia">
+
+                    Nenhum componente cadastrado.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    componentes.forEach(
+        componente => {
+
+            const linha =
+                document.createElement(
+                    "tr"
+                );
+
+
+            /*
+             * QUANDO CLICAR NO COMPONENTE
+             */
+            linha.onclick =
+                function() {
+
+                    // Remove a seleção de todas
+                    // as outras linhas
+                    document
+                        .querySelectorAll(
+                            "#tabelaComponentes tr"
+                        )
+                        .forEach(
+                            tr =>
+                                tr.classList.remove(
+                                    "selecionada"
+                                )
+                        );
+
+
+                    // Guarda o ID do componente
+                    componenteSelecionado =
+                        componente.id;
+
+
+                    // Marca esta linha como selecionada
+                    linha.classList.add(
+                        "selecionada"
+                    );
+
+
+                    console.log(
+                        "Componente selecionado:",
+                        componente
+                    );
+
+                };
+
+
+            linha.innerHTML = `
+
+                <td>
+                    ${componente.nome}
+                </td>
+
+                <td>
+                    ${componente.quantidade}
+                </td>
+
+                <td>
+                    ${componente.embalagem}
+                </td>
+
+                <td>
+                    ${componente.capacidade}
+                </td>
+
+            `;
+
+
+            tabela.appendChild(
+                linha
+            );
+
+        }
+    );
+
+}
+```
