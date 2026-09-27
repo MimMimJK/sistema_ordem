@@ -1560,5 +1560,23 @@ function fazerLogin() {
     }
 }
 
+function fazerLogin() {
+
+    const usuario = document.getElementById("usuarioLogin").value;
+    const senha = document.getElementById("senhaLogin").value;
+
+    if (usuario === "admin" && senha === "1234") {
+
+        document.getElementById("telaLogin").style.display = "none";
+
+        document.getElementById("sistema").style.display = "block";
+
+    } else {
+
+        document.getElementById("mensagemLogin").textContent =
+            "Usuário ou senha incorretos.";
+
+    }
+}
 
 iniciarSistema();

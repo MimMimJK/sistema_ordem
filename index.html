@@ -17,6 +17,61 @@
 </head>
 
 <body>
+    
+<!-- =========================
+     TELA DE LOGIN
+========================= -->
+
+<div id="telaLogin" class="tela-login">
+
+    <div class="login-box">
+
+        <h1>SISTEMA DE PRODUÇÃO</h1>
+
+        <p>Faça login para acessar o sistema</p>
+
+        <div class="campo">
+
+            <label>Usuário</label>
+
+            <input
+                type="text"
+                id="usuarioLogin"
+                placeholder="Digite seu usuário">
+
+        </div>
+
+        <div class="campo">
+
+            <label>Senha</label>
+
+            <input
+                type="password"
+                id="senhaLogin"
+                placeholder="Digite sua senha">
+
+        </div>
+
+        <button
+            class="btn-login"
+            onclick="fazerLogin()">
+
+            Entrar
+
+        </button>
+
+        <p id="mensagemLogin"></p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     SEU SISTEMA ATUAL
+========================= -->
+
+<div id="sistema" style="display: none;">
 
 <header>
     <h1>SISTEMA DE PRODUÇÃO</h1>
